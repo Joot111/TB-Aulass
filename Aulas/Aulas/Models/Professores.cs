@@ -1,10 +1,18 @@
 ﻿namespace Aulas.Models
 {
     public class Professores{
-        public int Id_Utilizador { get; set; }
 
-        public string Nome { get; set; }
+        public Professores() { 
+            ListaUCs = new HashSet<UnidadesCurriculares>();
+        }
 
-        public int Id_UC { get; set;}
+        /**
+        * Vamos criar as Relações (FKs) com outras tabelas
+        * 
+        */
+
+        //relacionamento do tipo N - M, SEM atributos do relacionamento
+
+        public ICollection<UnidadesCurriculares> ListaUCs { get; set; }
     }
 }
