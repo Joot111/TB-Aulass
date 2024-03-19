@@ -10,6 +10,7 @@ namespace Aulas.Models
 
         public UnidadesCurriculares() { 
             ListaProfessores = new HashSet<Professores>();
+            ListaInscricoes = new HashSet<Inscricoes>();
         }   
 
         public int Id { get; set; }
@@ -31,7 +32,14 @@ namespace Aulas.Models
 
         public Cursos Curso {  get; set;} // em rigor esta inscrição está ligado á tabela cursos
 
-        // relacionamento do tipo N - 1
+        // relacionamento do tipo N - M, SEM atributos de relacionamento
         public ICollection<Professores> ListaProfessores { get; set; }
+
+        // relacionamento do tipo N - M, COM atributos de relacionamento
+        // não vou referenciar a tabela 'final',
+        // mas a tabela 'meio' do relacionamento
+        // vamos referenciar o relacionamento N - M á custa
+        //
+        public ICollection<Inscricoes> ListaInscricoes { get; set; }
     }
 }

@@ -4,6 +4,10 @@ namespace Aulas.Models
 {
     public class Alunos{
 
+        public Alunos() { 
+            ListaInscricoes = new HashSet<Inscricoes>();
+        }
+
         public int NumAluno { get; set; }
 
         public decimal Propinas { get; set; }
@@ -21,5 +25,12 @@ namespace Aulas.Models
         public int CursoFK { get; set; } // Será FK para tabela Cursos
 
         public Cursos Curso { get; set; } // em rigor esta inscrição está ligado á tabela cursos
+
+        // relacionamento do tipo N - M, COM atributos de relacionamento
+        // não vou referenciar a tabela 'final',
+        // mas a tabela 'meio' do relacionamento
+        // vamos referenciar o relacionamento N - M á custa
+        //
+        public ICollection<Inscricoes> ListaInscricoes { get; set; }
     }
 }
