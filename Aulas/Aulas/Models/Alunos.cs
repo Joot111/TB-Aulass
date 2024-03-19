@@ -2,7 +2,8 @@
 
 namespace Aulas.Models
 {
-    public class Alunos{
+    // Alunos é extensão de Utilizadores 
+    public class Alunos : Utilizadores {
 
         public Alunos() { 
             ListaInscricoes = new HashSet<Inscricoes>();

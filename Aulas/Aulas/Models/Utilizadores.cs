@@ -6,6 +6,6 @@
 
         public string Nome { get; set;}
 
-        public DateOnly DataNascimento { get;}
+        public DateOnly DataNascimento { get; set;}
     }
 }
