@@ -44,7 +44,9 @@ namespace Aulas.Controllers
         }
 
         // GET: Cursos/Create
+        // facultativo, pois esta função, por predfenição já reage ao GET
         public IActionResult Create()
+            // a única ação desta função é mostrar a View
         {
             return View();
         }
@@ -52,16 +54,21 @@ namespace Aulas.Controllers
         // POST: Cursos/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [HttpPost] 
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nome,Logotipo")] Cursos cursos)
+        public async Task<IActionResult> Create([Bind("Nome")] Cursos cursos, IFormFile ImagemLogo )
         {
+            // avalia se os dados que chegam da View estão de acordo com o Model
             if (ModelState.IsValid)
             {
+                // adiciona os dados vindos da View à BD
                 _context.Add(cursos);
+                // efetua um COMMIT na BD
                 await _context.SaveChangesAsync();
+                // redireciona o utilizador para a página Index
                 return RedirectToAction(nameof(Index));
             }
+            // se cheguei aqui é pq alguma coisa correu mal, volta à View com dados datualizados
             return View(cursos);
         }
 
