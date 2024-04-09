@@ -12,9 +12,13 @@ namespace Aulas.Models
         [Key] // PK
         public int Id { get; set; }
 
+        [StringLength(100)]
         public string Nome { get; set; }
 
-        public string Logotipo { get; set;}
+
+        [Display(Name="Logótipo")] // altera o nome que aparece no ecrã
+        [StringLength(50)]// define o tamanho máximo como 50 caracteres
+        public string? Logotipo { get; set;}// o ? torna o preenchimento facultativo
 
 
         /**
