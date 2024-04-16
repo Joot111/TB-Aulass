@@ -31,7 +31,6 @@ namespace Aulas.Models
         public ICollection<UnidadesCurriculares> ListaUCs { get; set; }
 
         // relacionamento com os Alunos
-
         public ICollection<Alunos> ListaAlunos { get; set; }
     }
 }
