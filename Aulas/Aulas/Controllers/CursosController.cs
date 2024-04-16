@@ -7,16 +7,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Aulas.Data;
 using Aulas.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Aulas.Controllers
 {
     public class CursosController : Controller
     {
+        /// <summary>
+        /// referência à BD do projeto
+        /// </summary>
         private readonly ApplicationDbContext _context;
 
-        public CursosController(ApplicationDbContext context)
+        /// <summary>
+        /// objeto que contêm os dados referentes ao ambiente do Servidor
+        /// </summary>
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public CursosController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Cursos
@@ -58,6 +68,52 @@ namespace Aulas.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Nome")] Cursos cursos, IFormFile ImagemLogo )
         {
+            /* Algoriitmo
+              1 - há ficheiros?
+                1.1 - não há ficheiro:
+                    devolver à view dizendo que o ficheiro é obrigatório
+                1.2 - há ficheiro:
+                    Mas é uma imagem (PNG, JPG)?
+                    1.2.1 - não é PNG nem JPG
+                            - devolver o controle à view e pedir PNG ou JPG
+                    1.2.2 - é uma imagem
+                            - determinar o nome a atribuir ao ficheiro
+                            - escrever esse nome nome na BD
+                            - se a escrita na BD se concretizar, é que o ficheiro é guardado no disco rígido
+             */
+
+            // variáveis auxiliares
+            string nomeImagem = "";
+            bool haImagem = false;
+
+            // há ficheiro?
+            if(ImagemLogo == null)
+            {
+                ModelState.AddModelError("", "O fornecimento de um Logotipo é obrigatírio");
+                return View(cursos);
+            } else
+            {
+                // há ficheiros, mas é imagem?
+                if (!(ImagemLogo.ContentType == "imagem/png" || ImagemLogo.ContentType == "imagem/jpg"))
+                {
+                    ModelState.AddModelError("", "Tem que fornecer um logotipo do tipo PNG ou JPG");
+                    return View(cursos);
+                }
+                else
+                {
+                    // há ficheiros . e é uma imagem válida
+                    Guid g = Guid.NewGuid();
+                    nomeImagem = g.ToString();
+                    // obter a extensão do nome do ficheiro
+                    string extensao = Path.GetExtension(ImagemLogo.FileName);
+                    // adcionar a exetensão ao nome da imagem
+                    nomeImagem += extensao;
+                    // adicionar o nome do ficheiro ao objeto que guarda
+                    // vem do browser
+                    cursos.Logotipo = nomeImagem;
+                }
+            }
+
             // avalia se os dados que chegam da View estão de acordo com o Model
             if (ModelState.IsValid)
             {
@@ -65,6 +121,26 @@ namespace Aulas.Controllers
                 _context.Add(cursos);
                 // efetua um COMMIT na BD
                 await _context.SaveChangesAsync();
+
+                // se há fichiro de imagem, vamos guardar no ficheiro disco rígido do servidor
+                if (haImagem)
+                {
+                    string nomePastaOndeGuardarImagem = _webHostEnvironment.WebRootPath;
+                    // já sei o caminho até à pasta wwroot específico onde vou guardar a imagem
+                    nomePastaOndeGuardarImagem = Path.Combine(nomePastaOndeGuardarImagem,"Imagens");
+                    // e, existe a pasta 'Imagens' ?
+                    if (Directory.Exists(nomePastaOndeGuardarImagem))
+                    {
+                        Directory.CreateDirectory(nomePastaOndeGuardarImagem);
+                    }
+                    // juntar o nome do ficheiro à sua localização
+                    string nomeFinalDaImagem = Path.Combine(nomePastaOndeGuardarImagem, nomeImagem);
+                    
+                    // guardar a imagem no disco rígido
+                    using var stream = new FileStream(nomeFinalDaImagem, FileMode.Create);
+                    await ImagemLogo.CopyToAsync(stream);
+                }
+
                 // redireciona o utilizador para a página Index
                 return RedirectToAction(nameof(Index));
             }
