@@ -101,6 +101,7 @@ namespace Aulas.Controllers
                 }
                 else
                 {
+                    haImagem = true;
                     // há ficheiros . e é uma imagem válida
                     Guid g = Guid.NewGuid();
                     nomeImagem = g.ToString();
