@@ -28,7 +28,7 @@ namespace Aulas.Models
         /// 9[1236] [0-9] [0-9] [0-9] [0-9] [0-9] [0-9] [0-9]
         /// 9[1236] [0-9] {7}
         /// </summary>
-        [RegularExpression("9[1236] [0-9] {7}", ErrorMessage = "o {0} só aceita 9 dígitos ")] // uma forma de predefinir um certo valor na expressão
+        [RegularExpression("9[1236][0-9]{7}", ErrorMessage = "o {0} só aceita 9 dígitos ")] // uma forma de predefinir um certo valor na expressão
         public string Telemovel { get; set;} 
 
 

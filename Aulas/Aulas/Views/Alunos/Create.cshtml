@@ -1,10 +1,10 @@
 ﻿@model Aulas.Models.Alunos
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Adcionar Alunos";
 }
 
-<h1>Create</h1>
+<h1>Adicionar um novo Aluno</h1>
 
 <h4>Alunos</h4>
 <hr />
@@ -18,9 +18,9 @@
                 <span asp-validation-for="NumAluno" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Propinas" class="control-label"></label>
-                <input asp-for="Propinas" class="form-control" />
-                <span asp-validation-for="Propinas" class="text-danger"></span>
+                <label asp-for="PropinasAux" class="control-label"></label>
+                <input asp-for="PropinasAux" class="form-control" />
+                <span asp-validation-for="PropinasAux" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="DataMatricula" class="control-label"></label>
@@ -54,7 +54,8 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <br/>
+    <a asp-action="Index">Regressar à Listagem dos Alunos</a>
 </div>
 
 @section Scripts {

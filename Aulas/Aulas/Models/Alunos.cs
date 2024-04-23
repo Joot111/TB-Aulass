@@ -16,7 +16,21 @@ namespace Aulas.Models
         /// </summary>
         public int NumAluno { get; set; }
         /// <summary>
-        /// Valor a pagar pelo Aluno pela frequência do Curso
+        /// atributo auxiliar para ler o valor da Proprinas na interface
+        /// </summary>
+        [NotMapped] // não representa este atributo na BD
+        [StringLength(8)]
+        [Display (Name = "Propina")]
+        [Required(ErrorMessage ="A {0} é obrigatória.")]
+        // [0-9]+[.,]?[0-9]{0,2}
+        // + --> 1 ou mais símbolos
+        // - --> 0 ou mais símbolos
+        // ? --> 0 ou 1 símbolo
+        // , --> entre 0 e 2 símbolos
+        [RegularExpression("[0-9]+[.,]?[0-9]{0,2}", ErrorMessage ="Só aceita dígitos numéricos, separados por um . ou por uma ,")]
+        public string PropinasAux { get; set; }
+        /// <summary>
+        /// Valor a pagar à frequência do Curso
         /// </summary>
         public decimal Propinas { get; set; }
         /// <summary>
