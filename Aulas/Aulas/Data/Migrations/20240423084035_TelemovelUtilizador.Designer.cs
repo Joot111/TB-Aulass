@@ -4,6 +4,7 @@ using Aulas.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,55 +12,18 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Aulas.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240423084035_TelemovelUtilizador")]
+    partial class TelemovelUtilizador
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.4")
+                .HasAnnotation("ProductVersion", "8.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Aulas.Models.Alunos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CursoFK")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DataMatricula")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateOnly>("DataNascimento")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("NumAluno")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Propinas")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Telemovel")
-                        .IsRequired()
-                        .HasMaxLength(9)
-                        .HasColumnType("nvarchar(9)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CursoFK");
-
-                    b.ToTable("Alunos");
-                });
 
             modelBuilder.Entity("Aulas.Models.Cursos", b =>
                 {
@@ -101,31 +65,6 @@ namespace Aulas.Data.Migrations
                     b.ToTable("Inscricoes");
                 });
 
-            modelBuilder.Entity("Aulas.Models.Professores", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly>("DataNascimento")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Telemovel")
-                        .IsRequired()
-                        .HasMaxLength(9)
-                        .HasColumnType("nvarchar(9)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Professores");
-                });
-
             modelBuilder.Entity("Aulas.Models.UnidadesCurriculares", b =>
                 {
                     b.Property<int>("Id")
@@ -152,6 +91,40 @@ namespace Aulas.Data.Migrations
                     b.HasIndex("CursoFK");
 
                     b.ToTable("UCs");
+                });
+
+            modelBuilder.Entity("Aulas.Models.Utilizadores", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("DataNascimento")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("nvarchar(13)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Telemovel")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Utilizadores");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Utilizadores");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -373,13 +346,30 @@ namespace Aulas.Data.Migrations
 
             modelBuilder.Entity("Aulas.Models.Alunos", b =>
                 {
-                    b.HasOne("Aulas.Models.Cursos", "Curso")
-                        .WithMany("ListaAlunos")
-                        .HasForeignKey("CursoFK")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasBaseType("Aulas.Models.Utilizadores");
 
-                    b.Navigation("Curso");
+                    b.Property<int>("CursoFK")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataMatricula")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NumAluno")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Propinas")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasIndex("CursoFK");
+
+                    b.HasDiscriminator().HasValue("Alunos");
+                });
+
+            modelBuilder.Entity("Aulas.Models.Professores", b =>
+                {
+                    b.HasBaseType("Aulas.Models.Utilizadores");
+
+                    b.HasDiscriminator().HasValue("Professores");
                 });
 
             modelBuilder.Entity("Aulas.Models.Inscricoes", b =>
@@ -480,7 +470,13 @@ namespace Aulas.Data.Migrations
 
             modelBuilder.Entity("Aulas.Models.Alunos", b =>
                 {
-                    b.Navigation("ListaInscricoes");
+                    b.HasOne("Aulas.Models.Cursos", "Curso")
+                        .WithMany("ListaAlunos")
+                        .HasForeignKey("CursoFK")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Curso");
                 });
 
             modelBuilder.Entity("Aulas.Models.Cursos", b =>
@@ -491,6 +487,11 @@ namespace Aulas.Data.Migrations
                 });
 
             modelBuilder.Entity("Aulas.Models.UnidadesCurriculares", b =>
+                {
+                    b.Navigation("ListaInscricoes");
+                });
+
+            modelBuilder.Entity("Aulas.Models.Alunos", b =>
                 {
                     b.Navigation("ListaInscricoes");
                 });

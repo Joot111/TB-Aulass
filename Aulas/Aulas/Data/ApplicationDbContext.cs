@@ -15,8 +15,6 @@ namespace Aulas.Data
         }
 
         // definição das 'tabelas'
-        public DbSet <Utilizadores> Utilizadores { get; set; }
-
         public DbSet <Alunos>  Alunos { get; set; }
 
         public DbSet <Professores> Professores { get; set; }
