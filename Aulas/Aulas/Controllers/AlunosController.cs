@@ -66,13 +66,28 @@ namespace Aulas.Controllers
         {
             if (ModelState.IsValid)
             {
-                // transferir o valor de PropinasAux para Propinas
-                aluno.Propinas = Convert.ToDecimal(aluno.PropinasAux.Replace('.',','));
-                _context.Add(aluno);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // transferir o valor de PropinasAux para Propinas
+                    aluno.Propinas = Convert.ToDecimal(aluno.PropinasAux.Replace('.', ','));
+                    _context.Add(aluno);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                } 
+                catch (Exception ex)
+                {
+                    // se cheiguei aqui é pq aconteceu um problema crítico. Tem de ser tratado.
+                    //  - devolver o controlo ao utilizador
+                    //  - corrigir o erro 
+                    //  - escrever os dados do erro nm LOG
+                    //  - escrever os dados do erro numa tabela da BD.
+                    //  - etc
+                    throw;
+                }
             }
-            ViewData["CursoFK"] = new SelectList(_context.Cursos, "Id", "Id", aluno.CursoFK);
+
+            // se chego aqui é pq alguma coisa correu mal
+            ViewData["CursoFK"] = new SelectList(_context.Cursos.OrderBy(c => c.Nome), "Id", "Nome", aluno.CursoFK);
             return View(aluno);
         }
 

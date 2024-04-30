@@ -27,8 +27,8 @@ namespace Aulas.Controllers.API
             foreach (var item in listaDB)
             {
                 TestDTO testDTO = new TestDTO();
-                testDTO.None = item.None;
-                testDTO.Nome = item.Nome;
+                //testDTO.None = item.None;
+                //testDTO.Nome = item.Nome;
                 listaRes.Add(testDTO);
             }
             return Ok(listaRes);
@@ -36,7 +36,7 @@ namespace Aulas.Controllers.API
 
         [HttpPost]
         [Route("insereDado")]
-        public ActionResult InsereDados(TestDTO testDTO)
+        /*public ActionResult InsereDados(TestDTO testDTO)
         {
             testDTO.None = new TestDTO();
             testDTO.Nome = new TestDTO();
@@ -44,7 +44,7 @@ namespace Aulas.Controllers.API
             _context.testDTO.Add(testDTO);
             _context.SaveChanges();
 
-        }
+        }*/
 
         [Route("nome")]
         public IActionResult Ola(string nome, string turma)
