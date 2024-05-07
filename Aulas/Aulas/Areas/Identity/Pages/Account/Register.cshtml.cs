@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using Aulas.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -46,80 +47,103 @@ namespace Aulas.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        ///     objeto a ser utilizado para transportar os dados entre a interface e o nosso código
         /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        ///     esta variável irá conter o 'destino' a ser palicado pela aplicação, 
+        ///     quando após o 'registo' a aplicação pretende ser reposicionado na página oriaginal
         /// </summary>
         public string ReturnUrl { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        ///     Se se adicionar as chaves autentciação por 'providers' externos, 
+        ///     aqui serão listados por esta variável
+        ///     Ver: https://go.microsoft.com/fwlink/?LinkID=532715
         /// </summary>
-        public IList<AuthenticationScheme> ExternalLogins { get; set; }
+        // public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        ///     'inner class'
+        ///     define os atributos a serem envidados/recebidos para/dentro de uma interface
         /// </summary>
         public class InputModel
         {
             /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            ///     Email do utilizador
+            ///     {0} vai buscar o nome que estiver no display
             /// </summary>
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "O {0} é de preenchimento obrigatório")]
+            [StringLength(20, ErrorMessage = "O {0} tem de ter, pelo menos {2} e um máximo de {1} caracteres.", MinimumLength = 6)]
+            [EmailAddress(ErrorMessage ="Escreva um {0} válido, por favor.")]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
             /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            ///     Password de acesso ao siatema, pelo utilizador
             /// </summary>
-            [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [Required(ErrorMessage = "A {0} é de preenchimento obrigatório")]
+            [StringLength(20, ErrorMessage = "A {0} tem de ter, pelo menos {2} e um máximo de {1} caracteres.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            /// <summary>   
+            ///     Confirmação da password
             /// </summary>
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [Display(Name = "Confirmar password")]
+            [Compare("Password", ErrorMessage = "A Password e a sua confirmação não coincide")]
             public string ConfirmPassword { get; set; }
+
+            /// <summary>
+            ///     Recolha dos dados do Utilizador PROFESSOR
+            /// </summary>
+            public Professores Professor { get; set; }
         }
 
-
-        public async Task OnGetAsync(string returnUrl = null)
+        /// <summary>
+        /// Este método reage ao HTTP GET
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        public async Task OnGet(string returnUrl = null)
         {
+            // guarda no atributo 'ReturnalUrl' o parâmetro do método de entrada
             ReturnUrl = returnUrl;
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+           // ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+           // pq se retirou esta instrução, foi necessário tornar o nosso metódo síncrono
         }
 
+        /// <summary>
+        /// ESte método recolhe os dados enviados pelo Utilizador
+        /// </summary>
+        /// <param name="returnUrl"> página a redeirecionar, após a operação de Regsitrar o utilizador</param>
+        /// <returns></returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
+            // se returnUrl = NULL;
+            // somos direcionados para a raiz da app
             returnUrl ??= Url.Content("~/");
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            // retirado a referência a 'autenticadores' externos
+           // ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+            // os dados reccebidos são válidos?
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
+                // estamos, aqui, a verdadeiramente guardar os dados da autenticação na base de dados
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
+                    // houve sucesso na criação da conta autenticação
                     _logger.LogInformation("User created a new account with password.");
 
                     var userId = await _userManager.GetUserIdAsync(user);
@@ -131,6 +155,8 @@ namespace Aulas.Areas.Identity.Pages.Account
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
+                    // envia email para o utilizador com o código de validadção do email inserido
+                    // SÓ APÓS a aceitação desta tarefa o utilizador pode entrar na app
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
