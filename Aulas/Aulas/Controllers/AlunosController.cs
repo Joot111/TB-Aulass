@@ -12,6 +12,9 @@ namespace Aulas.Controllers
 {
     public class AlunosController : Controller
     {
+       /// <summary>
+       /// Referência á BD do projeto
+       /// </summary>
         private readonly ApplicationDbContext _context;
 
         public AlunosController(ApplicationDbContext context)

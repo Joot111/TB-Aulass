@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using Aulas.Data;
 using Aulas.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -31,12 +32,18 @@ namespace Aulas.Areas.Identity.Pages.Account
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
 
+        /// <summary>
+        /// Referência á BD do projeto
+        /// </summary>
+        private readonly ApplicationDbContext _context;
+
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -44,6 +51,7 @@ namespace Aulas.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _context = context;
         }
 
         /// <summary>
@@ -145,6 +153,44 @@ namespace Aulas.Areas.Identity.Pages.Account
                 {
                     // houve sucesso na criação da conta autenticação
                     _logger.LogInformation("User created a new account with password.");
+
+                    // ***************************************************************
+                    // vamos escrever na BD os dados do Professor na prática,
+                    // quero guardar na BD os dados do atributo 'input.Professor'
+                    // ***************************************************************
+
+                    // vamos guardar ovalor do atributo que fará a 'ponte' entre a BD
+                    // da autenticação e a BD deo 'negócio'
+                    Input.Professor.UserID = user.Id;
+
+                    try
+                    {
+                        // guardar os dados na BD
+                        _context.Add(Input.Professor);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // há que registrar os dados do que aconteceu mal,
+                        // para se recuperar o problema
+
+                        // se cheguei aqui, é porque não se consguiu escrever
+                        // escrever so Dados do professor na BD há que se 
+                        // tomar uma decisão sobre o que fazer...
+            
+                        // Sugestão:
+                        // - guardar os dados de execeção num ficheiro de 'log'
+                        //    no disco rígido do servidor 
+                        // - guradar os dados da execeção numa tabela da BD
+                        // - apagar o utilizador criado na linha 154
+                        // - modificar a pessoa que está a interagir com a
+                        // aplicação  do sucedido
+                        // - redirecionar a pessoa a uma página da view
+                        _logger.LogInformation(ex.ToString());
+                        throw;
+                    }
+
+                    // ***************************************************************
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
