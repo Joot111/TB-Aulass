@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Aulas.Data;
 using Aulas.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aulas.Controllers
 {
+    [Authorize]
     public class UnidadesCurricularesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -50,11 +53,16 @@ namespace Aulas.Controllers
         {
             // id --> value associado á dropdown
             // nome --> atributo nome associado ao curso
+            // procurar os dados apresentados na 'dropdown' dos Cursos
             ViewData["CursoFK"] = new SelectList(_context.Cursos.OrderBy(c=>c.Nome), "Id", "Nome");
-            
+
             // obter a lista de professores,
             // para enviar para a View
 
+            // em SQL: Select * From Professores p Order By p.nome
+            // LINQ:
+            var listaProfs = _context.Professores.OrderBy(p=>p.Nome).ToList();
+            ViewData["listaProfessores"] = listaProfs;
             return View();
         }
 
@@ -63,16 +71,40 @@ namespace Aulas.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nome,AnoCurricular,Semestre,CursoFK")] UnidadesCurriculares unidadesCurriculares)
+        public async Task<IActionResult> Create([Bind("Id,Nome,AnoCurricular,Semestre,CursoFK")] UnidadesCurriculares unidadeCurricular, int[] escolhaProfessores)
         {
-            if (ModelState.IsValid)
+            // var. auxiliar
+            bool haErros = false;
+
+            // Validações
+            if(escolhaProfessores.Length == 0)
             {
-                _context.Add(unidadesCurriculares);
+                // não escolhi nenhum professor
+                ModelState.AddModelError("", "Escolha um Professor, por favor.");
+                haErros = true;
+            }
+
+            if(unidadeCurricular.CursoFK == -1)
+            {
+                // não foi selecionado nenhum curso
+                ModelState.AddModelError("", "Escolha um Curso, por favor.");
+                haErros = true;
+            }
+            
+
+            if (ModelState.IsValid && !haErros)
+            {
+                _context.Add(unidadeCurricular);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CursoFK"] = new SelectList(_context.Cursos, "Id", "Id", unidadesCurriculares.CursoFK);
-            return View(unidadesCurriculares);
+            // se chegar aqui, é porque houve problemas
+            // vou devolver o controlo à View
+            // Tenho de preparar os dados para enviar
+            ViewData["CursoFK"] = new SelectList(_context.Cursos, "Id", "Nome", unidadeCurricular.CursoFK);
+            var listaProfs = _context.Professores.OrderBy(p => p.Nome).ToList();
+            ViewData["listaProfessores"] = listaProfs;
+            return View(unidadeCurricular);
         }
 
         // GET: UnidadesCurriculares/Edit/5
