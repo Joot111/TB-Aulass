@@ -7,11 +7,17 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Aulas.Data;
 using Aulas.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Aulas.Controllers
 {
+    [Authorize] // qq tarefa desta classe só pode ser efetuada por pessoas autorizadas (ie.autenticadas)
+    // exceto se se criar uma exceção
     public class AlunosController : Controller
     {
+       /// <summary>
+       /// Referência á BD do projeto
+       /// </summary>
         private readonly ApplicationDbContext _context;
 
         public AlunosController(ApplicationDbContext context)

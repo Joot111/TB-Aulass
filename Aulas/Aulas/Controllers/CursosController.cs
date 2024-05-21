@@ -8,9 +8,12 @@ using Microsoft.EntityFrameworkCore;
 using Aulas.Data;
 using Aulas.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Aulas.Controllers
 {
+    [Authorize] // qq tarefa desta classe só pode ser efetuada por pessoas autorizadas (ie.autenticadas)
+    // exceto se se criar uma exceção
     public class CursosController : Controller
     {
         /// <summary>
@@ -30,12 +33,18 @@ namespace Aulas.Controllers
         }
 
         // GET: Cursos
+        /// <summary>
+        /// Invoca a View que Lista os Cursos existentes na BD
+        /// </summary>
+        /// <returns></returns>
+        [AllowAnonymous] // esta anotação isenta da obrigação do utilizador estar autenticado
         public async Task<IActionResult> Index()
         {
             return View(await _context.Cursos.ToListAsync());
         }
 
         // GET: Cursos/Details/5
+        [AllowAnonymous] // esta anotação isenta da obrigação do utilizador estar autenticado
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
