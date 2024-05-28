@@ -69,6 +69,12 @@ namespace Aulas.Controllers
         // POST: UnidadesCurriculares/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        /// <summary>
+        /// recolha de dados na adição de uma nova Unidade Curricular
+        /// </summary>
+        /// <param name="unidadeCurricular">dados da Unidade Curricular</param>
+        /// <param name="escolhaProfessores">lista dos IDs dos professores são recolhidos para a criação de uma UC</param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Nome,AnoCurricular,Semestre,CursoFK")] UnidadesCurriculares unidadeCurricular, int[] escolhaProfessores)
@@ -94,6 +100,21 @@ namespace Aulas.Controllers
 
             if (ModelState.IsValid && !haErros)
             {
+                // associar os professores escolhidos à UC
+                // criar uma Lista Professores
+                var listaProfsNaUC = new List<Professores>();
+                foreach(var prof in escolhaProfessores)
+                {
+                    // procurar o Professor na BD
+                    var p = await _context.Professores.FindAsync(prof);
+                    if(p != null)
+                    {
+                        listaProfsNaUC.Add(p);
+                    }
+                }
+                // atribuir a Lista de Professores à UC
+                unidadeCurricular.ListaProfessores = listaProfsNaUC;
+
                 _context.Add(unidadeCurricular);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
