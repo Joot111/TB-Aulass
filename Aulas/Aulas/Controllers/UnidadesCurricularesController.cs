@@ -12,7 +12,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Aulas.Controllers
 {
-    [Authorize]
+    /* apenas as pessoas autenticadas E que pertencem 
+     * ao Role de Professor podem entrar */
+    [Authorize(Roles = "Professor")]
     public class UnidadesCurricularesController : Controller
     {
         private readonly ApplicationDbContext _context;
