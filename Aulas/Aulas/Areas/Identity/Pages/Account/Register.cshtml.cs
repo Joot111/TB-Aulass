@@ -154,6 +154,12 @@ namespace Aulas.Areas.Identity.Pages.Account
                     // houve sucesso na criação da conta autenticação
                     _logger.LogInformation("User created a new account with password.");
 
+
+                    // ***************************************************************
+                    // Vamos atribuir à pessoa que se registou o Role PROFESSOR
+                    await _userManager.AddToRoleAsync(user, "Professor");
+                    // ***************************************************************
+
                     // ***************************************************************
                     // vamos escrever na BD os dados do Professor na prática,
                     // quero guardar na BD os dados do atributo 'input.Professor'
