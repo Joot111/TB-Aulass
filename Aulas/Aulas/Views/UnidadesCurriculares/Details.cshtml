@@ -1,13 +1,14 @@
 ﻿@model Aulas.Models.UnidadesCurriculares
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Unidaade Curricular";
 }
 
-<h1>Details</h1>
+<h1>Detalhes da Unidade Curricular</h1>
+
+<h4>@Model.Nome</h4>
 
 <div>
-    <h4>UnidadesCurriculares</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -32,11 +33,31 @@
             @Html.DisplayNameFor(model => model.Curso)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Curso.Id)
+            <a asp-action="Details" asp-controller="Cursos" asp-route-id="@Model.CursoFK">
+                @Html.DisplayFor(model => model.Curso.Nome)
+            </a><br />
+            @*Alt serve para invisuais e mostra o nome quando não aparece a imagem. 
+            Não utilizar largura e altura para não ficar desproporcional.*@
+            <img src ="~/Imagens/@Model.Curso.Logotipo"  alt="logótipo do Curso @Model.Curso.Nome" title="@Model.Curso.Nome" width="50px"/> 
+        </dd>
+
+        @*Lista dos Professores*@
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Curso)
+        </dt>
+        <dd class="col-sm-10">
+            <ul>
+            @foreach (var prof in Model.ListaProfessores)
+            {
+                    <li>
+                        <a asp-action="Details" asp-controller="Professores" asp-route-id="@prof.Id">@prof.Nome</a>
+                    </li>
+            }
+            </ul>
         </dd>
     </dl>
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Regressar à Lista</a>
 </div>
