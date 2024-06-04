@@ -9,26 +9,41 @@ using Aulas.Data;
 using Aulas.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace Aulas.Controllers
 {
     /* apenas as pessoas autenticadas E que pertencem 
      * ao Role de Professor podem entrar */
-    [Authorize(Roles = "Professor")]
+    [Authorize(Roles = "Professor,Administrativo")]
+    /* [Authorize(Roles = "Professor")] --> só 'entra' quem for Professor
+     * 
+     * [Authorize(Roles = "Professor, Administrativo")] --> só 'entra' quem for Professor e Administrativo
+     * 
+     * [Authorize(Roles = "Professor")]      --> 
+     * [Authorize(Roles = "Administrativo")] --> só 'entra' quem for Professor e Administrativo*/
     public class UnidadesCurricularesController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public UnidadesCurricularesController(ApplicationDbContext context)
+        /// <summary>
+        /// Objeto para interagir com a Autenticação
+        /// </summary>
+        private readonly UserManager<IdentityUser> _userManager;
+
+
+        public UnidadesCurricularesController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: UnidadesCurriculares
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.UCs.Include(u => u.Curso);
-            return View(await applicationDbContext.ToListAsync());
+            var listaUCs = _context.UCs.Include(u => u.Curso);
+
+            return View(await listaUCs.ToListAsync());
         }
 
         // GET: UnidadesCurriculares/Details/5
@@ -66,16 +81,23 @@ namespace Aulas.Controllers
             // procurar os dados apresentados na 'dropdown' dos Cursos
             ViewData["CursoFK"] = new SelectList(_context.Cursos.OrderBy(c=>c.Nome), "Id", "Nome");
 
-            // obter a lista de professores,
-            // para enviar para a View
+            /* Aceder à lista de Professores se a pessoa que interage 
+             * é do Role Administrativo*/
 
-            // em SQL: Select * From Professores p Order By p.nome
-            // LINQ:
-            var listaProfs = _context.Professores.OrderBy(p=>p.Nome).ToList();
-            ViewData["listaProfessores"] = listaProfs;
+            if (User.IsInRole("Administrativo"))
+            {
+                // obter a lista de professores,
+                // para enviar para a View
+
+                // em SQL: Select * From Professores p Order By p.nome
+                // LINQ:
+                var listaProfs = _context.Professores.OrderBy(p => p.Nome).ToList();
+                ViewData["listaProfessores"] = listaProfs;
+            }
+
             return View();
         }
-
+        
         // POST: UnidadesCurriculares/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -93,12 +115,38 @@ namespace Aulas.Controllers
             bool haErros = false;
 
             // Validações
-            if(escolhaProfessores.Length == 0)
-            {
-                // não escolhi nenhum professor
-                ModelState.AddModelError("", "Escolha um Professor, por favor.");
-                haErros = true;
+
+            if (User.IsInRole("Administrativo"))
+            {   
+                    if (escolhaProfessores.Length == 0)
+                    {
+                        // não escolhi nenhum professor
+                        ModelState.AddModelError("", "Escolha um Professor, por favor.");
+                        haErros = true;
+                    }
             }
+            else {
+                // se a pessoa que usa esta funcionalidade não é do Role Administrativo
+                // é porque é Professor
+                // vamos associar o ID do Professor à lista de Professores associados à UC
+
+                // obter o ID da pesssoa que está autenticada
+                var idPessoaAutenticada = _userManager.GetUserId(User);
+
+                // procurar o Professor que está autenticado
+
+                var professor = _context.Professores
+                                        .Where(p => p.UserID == idPessoaAutenticada)
+                                        .FirstOrDefault();
+                // obter o ID do professor
+                var idProfessor = professor.Id;
+
+                // atribuir o ID do professor no parâmetro de
+                // entrada 'escolhaProfessores' que está vazio
+                escolhaProfessores[0] = idProfessor;
+
+            }
+
 
             if(unidadeCurricular.CursoFK == -1)
             {
