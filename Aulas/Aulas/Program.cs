@@ -24,6 +24,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
+    // invocar a seed da BD
+    app.UseItToSeedSqlServer();
 }
 else
 {
